@@ -12,7 +12,7 @@ be automated — follow the instructions in the row and save the file to the pat
 ## Training data (sold prices)
 
 ### `toronto` — scripted
-Toronto residential sales, roughly 2019. 15,234 rows with sold and list price,
+Toronto residential sales, roughly 2019. 15,236 rows with sold and list price,
 beds, baths, square footage, parking, property type and lat/long.
 
 - Source: [slavaspirin/Toronto-housing-price-prediction](https://github.com/slavaspirin/Toronto-housing-price-prediction) — `houses.csv`
