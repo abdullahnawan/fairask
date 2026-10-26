@@ -28,6 +28,11 @@ SOURCES: dict[str, tuple[str, str]] = {
         "3b0c48df241c349419f9787591b7cb55e2e1a84c/houses.csv",
         "toronto_sales/houses.csv",
     ),
+    "brampton": (
+        "https://raw.githubusercontent.com/AndrewTymkiv/real_estate_analysis/"
+        "9512ffe712bae19a4138409ca39bf90c0f8c24b6/Resources/Sold_homes_combined_final.csv",
+        "brampton_sales/Sold_homes_combined_final.csv",
+    ),
 }
 
 
