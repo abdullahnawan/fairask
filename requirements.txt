@@ -6,6 +6,7 @@ pandas==3.1.0
 scikit-learn==1.9.1
 lightgbm==4.7.0
 shap==0.54.1
+openpyxl==3.1.5          # pandas needs this to read the CREA HPI .xlsx
 
 # API
 fastapi==0.162.0
