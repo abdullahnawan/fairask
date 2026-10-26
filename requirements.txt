@@ -1,0 +1,15 @@
+# Pinned to the versions verified working on Python 3.12.10, 2026-10-26.
+# Direct dependencies only; pip resolves the rest.
+
+# Data and ML
+pandas==3.1.0
+scikit-learn==1.9.1
+lightgbm==4.7.0
+shap==0.54.1
+
+# API
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+
+# Testing
+pytest==9.1.1
