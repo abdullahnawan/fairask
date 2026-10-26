@@ -1,0 +1,31 @@
+# Private instructions to Claude Code — never committed
+CLAUDE.md
+CLAUDE.local.md
+
+# Data: raw downloads, intermediate tables and private sold comps stay local
+data/raw/
+data/processed/
+data/private/
+
+# Secrets
+.env
+.env.local
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Trained models and evaluation artifacts too large or too churn-heavy for git
+ml/models/
+
+# Next.js / Node
+node_modules/
+web/.next/
+web/out/
+
+# OS
+.DS_Store
+Thumbs.db
