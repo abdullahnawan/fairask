@@ -19,6 +19,8 @@ beds, baths, square footage, parking, property type and lat/long.
 - Lands in: `data/raw/toronto_sales/houses.csv`
 - Terms: **no licence stated.** Used locally for model training only. Credited here
   and in the model card. Not redistributed — the file is not committed to this repo.
+- Row count measured on download, 2026-10-26. The upstream README says 15,234;
+  the file actually holds 15,236 data rows. The measured number is used above.
 
 ### `brampton` — scripted
 Brampton sales, January to May 2021. 1,193 rows, adding sold date, garage, air
