@@ -22,3 +22,28 @@ Detached, semi-detached, townhouse and condo apartment.
 
 Listings are imported by pasting text or a screenshot. **No listing site is
 scraped.**
+
+## Layout
+
+```
+data/   download and prep scripts, SOURCES.md (raw data is gitignored)
+ml/     feature pipeline, training, evaluation, saved models
+api/    FastAPI app, deal engine, finance math
+web/    Next.js frontend
+docs/   model card, design notes
+```
+
+## Setup
+
+Requires Python 3.12.
+
+```sh
+py -3.12 -m venv .venv
+.venv/Scripts/activate      # Windows; use source .venv/bin/activate elsewhere
+pip install -r requirements.txt
+```
+
+## Data
+
+Every source, its license and how to obtain it are listed in `data/SOURCES.md`.
+Raw data is never committed. Private sold comps are never published in any form.
