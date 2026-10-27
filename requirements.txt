@@ -12,5 +12,11 @@ openpyxl==3.1.5          # pandas needs this to read the CREA HPI .xlsx
 fastapi==0.162.0
 uvicorn[standard]==0.54.0
 
+# Exploration notebook only (ml/exploration.ipynb)
+matplotlib==3.11.2
+nbformat==5.11.1
+nbconvert==7.17.2
+ipykernel==7.4.0
+
 # Testing
 pytest==9.1.1
