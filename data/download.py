@@ -3,9 +3,15 @@
     python data/download.py            # every source that is missing
     python data/download.py toronto    # just one
 
-Each URL pins a git commit, so a download is byte-identical no matter when it
-runs. That is what makes a training run reproducible, and it is why no checksum
-is recorded here: the commit hash already fixes the content.
+Where a source lives in a git repo the URL pins a commit, so the download is
+byte-identical no matter when it runs. That is what makes a training run
+reproducible, and it is why no checksum is recorded for those: the commit hash
+already fixes the content.
+
+The City of Toronto open-data endpoint offers no such pin. It serves whatever
+the dataset was last refreshed to, so SOURCES.md records the refresh date and
+byte count of the copy this project was built against, and a later download may
+legitimately differ.
 
 Sources needing a login or a licence click cannot be automated. They are listed
 as manual in SOURCES.md, with the path to save them to.
@@ -32,6 +38,12 @@ SOURCES: dict[str, tuple[str, str]] = {
         "https://raw.githubusercontent.com/AndrewTymkiv/real_estate_analysis/"
         "9512ffe712bae19a4138409ca39bf90c0f8c24b6/Resources/Sold_homes_combined_final.csv",
         "brampton_sales/Sold_homes_combined_final.csv",
+    ),
+    "toronto_parcels": (
+        "https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/"
+        "1acaa8b0-f235-4df6-8305-02025ccdeb07/resource/"
+        "d9a29cdd-6434-4b12-96f7-0d3071873d05/download/property_bnds_gcc_wgs84.zip",
+        "toronto_parcels/property_bnds_gcc_wgs84.zip",
     ),
 }
 

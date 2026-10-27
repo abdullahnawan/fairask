@@ -90,12 +90,33 @@ and stress test math.
 
 ## Feature enrichment (joined by location)
 
-These fill gaps in the sold datasets. All are manual: each needs a form, an
-account, or a map query that is easier to do by hand once.
+These fill gaps in the sold datasets.
+
+### `toronto_parcels` — scripted
+Every property boundary in Toronto, 498,443 polygons, used to measure the lot
+each sale sits on. `ml/parcels.py` reads the shapefile straight out of the zip.
+
+- Source: [Toronto Property Boundaries](https://open.toronto.ca/dataset/property-boundaries/)
+  — the "Property Boundaries (wgs84) - shapefile" resource
+- Lands in: `data/raw/toronto_parcels/property_bnds_gcc_wgs84.zip`
+- Terms: Open Government Licence – Toronto. The file is not committed or
+  republished; only measurements derived from it are.
+- **Not version-pinned.** The City serves the current refresh, so this is the
+  one source whose bytes can change under the project. The copy FairAsk was
+  built against: refreshed 2026-10-26, downloaded 2026-10-27, 57,578,200 bytes,
+  498,443 polygons.
+- **It carries no lot area.** The attribute table holds only `OBJECTID` and
+  `F_TYPE`, so area is computed from the polygon geometry. The project notes
+  originally expected a `STATEDAREA` column; today's release has no such field.
+- Despite the "wgs84" in the file name the geometry is EPSG:3857 Web Mercator,
+  per the `.prj`. Area in that projection is inflated by about 1.9x at Toronto's
+  latitude, and `ml/parcels.py` corrects for it.
+
+The rest are manual: each needs a form, an account, or a map query that is
+easier to do by hand once.
 
 | Source | Adds | Terms |
 |---|---|---|
-| [Toronto Property Boundaries](https://open.toronto.ca/dataset/property-boundaries/) | Lot size (`STATEDAREA`) for Toronto sales | Open Government Licence – Toronto |
 | Toronto Building Construction Dates (Borealis, UofT Map & Data Library) | Year built per parcel, pre-1901 to 2003 | **CC BY-NC** — non-commercial, reference use. Must be stated in the model card |
 | [Toronto Cleared Building Permits](https://open.toronto.ca/dataset/building-permits-cleared-permits/) | New builds and renovations, 2000 onward | Open Government Licence – Toronto |
 | Kitchener, Waterloo, Cambridge, Mississauga and Brampton building permits | Year built for newer homes, renovations, finished basements; Waterloo property area; Cambridge lot area | Municipal ArcGIS open data, per-city open licences |
@@ -120,5 +141,8 @@ not filled with synthetic or estimated values.**
 - CREA publishes no Brampton index and no semi-detached series. Brampton sales
   are adjusted with the Greater Toronto benchmark and semis with the
   single-family one. Both substitutions are in `ml/adjust.py`.
+- Lot size is only meaningful where a sale sits on its own parcel. Condominium
+  parcels are shared by every unit in the building, so those sales get a parcel
+  area but no lot size: 6,526 of 14,892 Toronto sales have an ownable lot.
 - No lot size for Kitchener.
 - No year built for Waterloo Region homes older than about 1997.
