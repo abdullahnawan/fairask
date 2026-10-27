@@ -108,7 +108,17 @@ not filled with synthetic or estimated values.**
 
 - No free Waterloo Region sold prices. Until local comps arrive, the model is
   trained on GTA sales only, and no claim about Waterloo Region accuracy can be made.
-- No GTA sales after 2021. Old sales are time-adjusted to today with the HPI,
-  which assumes a typical home for its region and type moved with the benchmark.
+- No GTA sales after 2021. Old sales are time-adjusted with the HPI by
+  `ml/adjust.py`, which assumes a typical home for its region and type moved
+  with the benchmark. Prices are adjusted to the newest month CREA publishes,
+  not to the calendar date, because there is no benchmark beyond it.
+- **The Toronto sold dataset carries no sale date at all** — there is no such
+  column. Its rows therefore cannot be time-adjusted, and only Brampton is.
+  Circumstantial evidence puts the scrape in 2019 (its MLS numbers run a narrow
+  4.33M to 4.52M band, and years mentioned in descriptions fall off a cliff
+  after 2019), but that is an inference, not a date, so no month is written in.
+- CREA publishes no Brampton index and no semi-detached series. Brampton sales
+  are adjusted with the Greater Toronto benchmark and semis with the
+  single-family one. Both substitutions are in `ml/adjust.py`.
 - No lot size for Kitchener.
 - No year built for Waterloo Region homes older than about 1997.
