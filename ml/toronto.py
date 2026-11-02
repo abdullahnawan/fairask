@@ -8,8 +8,9 @@ price model is worse than a crash.
 
 Two quirks of this particular file:
 
-* One row (index 14) holds a scraped HTML error page instead of listing fields.
-  It is dropped.
+* One row holds a scraped HTML error page instead of listing fields. Its
+  columns are shifted, so its `type` is markup rather than a property type,
+  and the in-scope type filter drops it without needing a special case.
 * The square-footage buckets are not one consistent scheme. "1400-1599",
   "1100-1500" and "700-1100" all appear, so the buckets overlap and a midpoint
   is an approximation, not a measurement. Both bounds are kept alongside it so
@@ -87,9 +88,6 @@ def load_toronto(path: Path = DEFAULT_CSV) -> pd.DataFrame:
 
     raw = pd.read_csv(path)
 
-    # One row is a scraped HTML error page; its type field holds markup.
-    raw = raw[~raw["type"].astype(str).str.contains("<", regex=False)]
-
     in_scope = raw[raw["type"].isin(TYPE_MAP)].copy()
 
     beds = in_scope["bedrooms"].map(parse_beds)
@@ -99,6 +97,9 @@ def load_toronto(path: Path = DEFAULT_CSV) -> pd.DataFrame:
         {
             "mls": in_scope["mls"].astype(str),
             "sold_price": in_scope["final_price"].astype("int64"),
+            # Whole dollars; the API converts to cents. list_price is for red
+            # flags and market context only, never a model feature: it carries
+            # the market temperature of its own moment.
             "list_price": in_scope["list_price"].astype("int64"),
             "property_type": in_scope["type"].map(TYPE_MAP),
             "beds_above": [b[0] for b in beds],

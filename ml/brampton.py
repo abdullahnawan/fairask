@@ -101,6 +101,9 @@ def load_brampton(path: Path = DEFAULT_CSV) -> pd.DataFrame:
         {
             "mls": in_scope["MLS#"],
             "sold_price": in_scope["Sold Price"].map(parse_price).astype("int64"),
+            # Whole dollars; the API converts to cents. list_price is for red
+            # flags and market context only, never a model feature: it carries
+            # the market temperature of its own moment.
             "list_price": in_scope["List Price"].map(parse_price).astype("int64"),
             "property_type": in_scope["Type"].map(TYPE_MAP),
             "style": in_scope["Style"],

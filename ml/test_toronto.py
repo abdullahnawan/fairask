@@ -12,6 +12,7 @@ import pytest
 from toronto import (
     DEFAULT_CSV,
     PROPERTY_TYPES,
+    TYPE_MAP,
     load_toronto,
     parse_beds,
     parse_parking,
@@ -89,9 +90,14 @@ def clean() -> pd.DataFrame:
 
 @pytestmark_loader
 class TestLoadToronto:
-    def test_scraped_html_row_is_dropped(self, clean: pd.DataFrame) -> None:
-        assert not clean["property_type"].str.contains("<", regex=False).any()
-        assert not clean["description"].astype(str).str.contains("<!DOCTYPE", case=False).any()
+    def test_exactly_the_in_scope_rows_survive(self, clean: pd.DataFrame) -> None:
+        """Covers the scraped HTML error page: its columns are shifted, so its
+        `type` holds markup and the in-scope filter drops it. Asserting on the
+        count is what makes that visible. Checking the cleaned property_type for
+        markup could not fail, because it is always one of the mapped values."""
+        raw = pd.read_csv(DEFAULT_CSV)
+        assert len(clean) == int(raw["type"].isin(TYPE_MAP).sum())
+        assert raw["type"].astype(str).str.contains("<", regex=False).sum() == 1
 
     def test_only_in_scope_property_types_survive(self, clean: pd.DataFrame) -> None:
         assert set(clean["property_type"]) <= set(PROPERTY_TYPES)
