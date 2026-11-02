@@ -62,7 +62,11 @@ def fetch(name: str) -> Path:
     # truncated file that the next run would accept as complete.
     partial = dest.with_name(dest.name + ".partial")
     try:
-        urllib.request.urlretrieve(url, partial)
+        _, headers = urllib.request.urlretrieve(url, partial)
+        # A server can answer 200 with an outage or login page. Saving that as
+        # the data file hides the failure until something tries to parse it.
+        if headers.get_content_type() == "text/html":
+            raise ValueError(f"{name}: server returned an HTML page, not the data file")
         partial.replace(dest)
     finally:
         partial.unlink(missing_ok=True)
