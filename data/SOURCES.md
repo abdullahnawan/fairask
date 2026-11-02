@@ -30,3 +30,19 @@ conditioning and heating type.
 - Source: [AndrewTymkiv/real_estate_analysis](https://github.com/AndrewTymkiv/real_estate_analysis) — `Resources/Sold_homes_combined_final.csv`
 - Lands in: `data/raw/brampton_sales/Sold_homes_combined_final.csv`
 - Terms: **no licence stated.** Same handling as the Toronto set above.
+
+## Feature enrichment (joined by location)
+
+These fill gaps in the sold datasets.
+
+### `toronto_parcels` — scripted
+Every property boundary in Toronto, used to measure the lot each sale sits on.
+
+- Source: [Toronto Property Boundaries](https://open.toronto.ca/dataset/property-boundaries/)
+  — the "Property Boundaries (wgs84) - shapefile" resource
+- Lands in: `data/raw/toronto_parcels/property_bnds_gcc_wgs84.zip`
+- Terms: Open Government Licence – Toronto. The file is not committed or
+  republished; only measurements derived from it are.
+- **Not version-pinned.** The City serves the current refresh, so this is the
+  one source whose bytes can change under the project. The copy FairAsk was
+  built against: refreshed 2026-10-26, downloaded 2026-10-27, 57,578,200 bytes.
