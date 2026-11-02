@@ -103,7 +103,13 @@ Every property boundary in Toronto, used to measure the lot each sale sits on.
   republished; only measurements derived from it are.
 - **Not version-pinned.** The City serves the current refresh, so this is the
   one source whose bytes can change under the project. The copy FairAsk was
-  built against: refreshed 2026-10-26, downloaded 2026-10-27, 57,578,200 bytes.
+  built against: refreshed 2026-10-26, downloaded 2026-10-27, 57,578,200 bytes,
+  498,443 polygons.
+- **It carries no lot area.** The attribute table holds only `OBJECTID` and
+  `F_TYPE`, so area is computed from the polygon geometry by `ml/parcels.py`.
+- Despite the "wgs84" in the file name the geometry is EPSG:3857 Web Mercator,
+  per the `.prj`. Area in that projection is inflated by about 1.91x at
+  Toronto's latitude, and `ml/parcels.py` corrects for it.
 
 The rest are manual: each needs a form, an account, or a map query that is
 easier to do by hand once.
@@ -124,5 +130,14 @@ not filled with synthetic or estimated values.**
   trained on GTA sales only, and no claim about Waterloo Region accuracy can be made.
 - No GTA sales after 2021. The newest sale in either training set is from May
   2021, so recent market movement has to come from the HPI rather than from sales.
+- **The Toronto sold dataset carries no sale date at all** - there is no such
+  column. Its rows therefore cannot be time-adjusted, and only Brampton is.
+- CREA publishes no Brampton index and no semi-detached series. Brampton sales
+  are adjusted with the Greater Toronto benchmark and semis with the
+  single-family one. Both substitutions are in `ml/adjust.py`.
+- Lot size is only meaningful where a sale sits on its own parcel. A
+  condominium's parcel is shared by every unit, and a COMMON parcel under a
+  condo or townhouse block covers the whole development, so only detached and
+  semi-detached sales get a lot: 5,541 of 14,892 Toronto sales.
 - No lot size for Kitchener.
 - No year built for Waterloo Region homes older than about 1997.
