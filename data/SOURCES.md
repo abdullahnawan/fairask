@@ -22,3 +22,11 @@ beds, baths, square footage, parking, property type and lat/long.
 - Row count measured on download, 2026-10-26. The upstream README says 15,234;
   the file actually holds 15,236 data rows, counted with a CSV parser because
   description fields contain embedded newlines. The measured number is used above.
+
+### `brampton` — scripted
+Brampton sales, January to May 2021. 1,193 rows, adding sold date, garage, air
+conditioning and heating type.
+
+- Source: [AndrewTymkiv/real_estate_analysis](https://github.com/AndrewTymkiv/real_estate_analysis) — `Resources/Sold_homes_combined_final.csv`
+- Lands in: `data/raw/brampton_sales/Sold_homes_combined_final.csv`
+- Terms: **no licence stated.** Same handling as the Toronto set above.
