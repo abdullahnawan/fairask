@@ -21,6 +21,7 @@ import pytest
 
 from parcels import (
     DEFAULT_ZIP,
+    FREEHOLD_TYPES,
     TORONTO_CLEAN,
     Parcels,
     join_lots,
@@ -113,6 +114,15 @@ class TestJoin:
         every unit in it. Reporting it as one unit's lot would be a 40,000 m2
         back garden."""
         assert lots.loc[lots["parcel_type"] == "CONDO", "lot_area_m2"].isna().all()
+
+    def test_a_shared_parcel_never_becomes_a_lot(
+        self, sales: pd.DataFrame, lots: pd.DataFrame
+    ) -> None:
+        """A COMMON parcel under a condo or a townhouse block covers the whole
+        development. Measuring it handed one unit a 46,675 m2 lot, so lot size
+        is kept only for types that own their parcel outright."""
+        shared = ~sales["property_type"].isin(FREEHOLD_TYPES).to_numpy()
+        assert lots.loc[shared, "lot_area_m2"].isna().all()
 
     def test_an_unmatched_sale_gets_no_area(self, lots: pd.DataFrame) -> None:
         unmatched = lots["parcel_type"].isna()

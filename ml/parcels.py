@@ -21,6 +21,11 @@ land owned by a condominium corporation and shared by every unit in the
 building, so its area belongs to no one unit; those rows get a parcel area but
 no lot size. COMMON parcels are ordinary subdivision lots.
 
+Feature type alone is not enough, though. Plenty of condo apartments and
+townhouses sit on a COMMON parcel covering the whole development, which
+measures as a 46,675 m2 "lot" for one unit. Lot size is therefore kept only for
+freehold types, where the parcel belongs to the sale alone.
+
 Reading the shapefile straight out of the zip keeps this to the standard library
 plus numpy, and avoids unpacking an untrusted archive onto disk.
 
@@ -50,6 +55,9 @@ EARTH_RADIUS_M = 6_378_137.0  # the sphere EPSG:3857 is defined on
 CELL_M = 500.0
 # A condominium's parcel is shared by every unit in it, so it is not a lot.
 LOT_FEATURE_TYPE = "COMMON"
+# Types that own their parcel outright. A COMMON parcel under a condo or a
+# townhouse block is the development's site, not one unit's lot.
+FREEHOLD_TYPES = ("detached", "semi_detached")
 
 
 def to_web_mercator(lat: float, lon: float) -> tuple[float, float]:
@@ -209,7 +217,8 @@ def join_lots(sales: pd.DataFrame, parcels: Parcels) -> pd.DataFrame:
     """Return mls, parcel_type, parcel_area_m2 and lot_area_m2 for each sale.
 
     `lot_area_m2` is left empty where the point fell outside every parcel, or
-    inside a condominium's shared parcel, which is not a lot.
+    where the parcel is shared rather than owned by the sale alone: a
+    condominium's land, or a COMMON parcel under a condo or townhouse block.
     """
     found = [
         parcels.locate(*to_web_mercator(lat, lon))
@@ -225,7 +234,10 @@ def join_lots(sales: pd.DataFrame, parcels: Parcels) -> pd.DataFrame:
             ],
         }
     )
-    lots["lot_area_m2"] = lots["parcel_area_m2"].where(lots["parcel_type"] == LOT_FEATURE_TYPE)
+    ownable = (lots["parcel_type"] == LOT_FEATURE_TYPE) & np.isin(
+        sales["property_type"].to_numpy(), FREEHOLD_TYPES
+    )
+    lots["lot_area_m2"] = lots["parcel_area_m2"].where(ownable)
     return lots
 
 
