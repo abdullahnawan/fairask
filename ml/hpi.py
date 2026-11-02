@@ -35,7 +35,7 @@ REGIONS = {
     "OAKVILLE_MILTON": "Oakville-Milton",
 }
 
-PROPERTY_TYPES = (
+CREA_PROPERTY_TYPES = (
     "Composite",
     "Single_Family",
     "One_Storey",
@@ -63,16 +63,21 @@ def load_hpi(
     frames = []
     for sheet, region in regions.items():
         wide = pd.read_excel(workbook, sheet_name=sheet)
-        missing = [
-            column
-            for ptype in PROPERTY_TYPES
-            for column in (f"{ptype}_HPI", f"{ptype}_Benchmark")
-            if column not in wide.columns
+        needed = [
+            f"{ptype}_{suffix}"
+            for ptype in CREA_PROPERTY_TYPES
+            for suffix in ("HPI", "Benchmark")
         ]
+        missing = [column for column in needed if column not in wide.columns]
         if missing:
             raise ValueError(f"sheet {sheet} is missing columns: {missing}")
+        # A series starting later than 2005 would otherwise reach
+        # .astype("int64") as a blank and raise an error naming no sheet.
+        incomplete = [column for column in needed if wide[column].isna().any()]
+        if incomplete:
+            raise ValueError(f"sheet {sheet} has months with no value in: {incomplete}")
 
-        for ptype in PROPERTY_TYPES:
+        for ptype in CREA_PROPERTY_TYPES:
             frames.append(
                 pd.DataFrame(
                     {
