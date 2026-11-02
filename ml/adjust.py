@@ -116,11 +116,11 @@ def main() -> None:
     adjusted = time_adjust(sales, hpi, city="Brampton")
     adjusted.to_csv(OUTPUT, index=False)
 
-    target = adjusted["sold_month"].max()
+    last_sold = adjusted["sold_month"].max()
     print(f"{len(adjusted):,} Brampton sales -> {OUTPUT.relative_to(REPO)}")
     print(
-        f"sold {adjusted['sold_month'].min():%Y-%m} to {target:%Y-%m}, "
-        f"adjusted to {load_hpi_table()['month'].max():%Y-%m}\n"
+        f"sold {adjusted['sold_month'].min():%Y-%m} to {last_sold:%Y-%m}, "
+        f"adjusted to {hpi['month'].max():%Y-%m}\n"
     )
     print(
         adjusted.groupby("property_type")
