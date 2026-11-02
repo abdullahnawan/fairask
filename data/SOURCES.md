@@ -31,6 +31,64 @@ conditioning and heating type.
 - Lands in: `data/raw/brampton_sales/Sold_homes_combined_final.csv`
 - Terms: **no licence stated.** Same handling as the Toronto set above.
 
+### Waterloo Region sold comps — manual, not yet obtained
+Local sales, for validating the model where it is actually meant to be used.
+
+- Source: a realtor or Cornerstone Association of REALTORS, by request
+- Lands in: `data/private/` (gitignored)
+- Terms: **private.** Never committed, never published. Individual sales, addresses
+  and rows must never appear in the README, the model card or a screenshot. Only
+  aggregate results, such as an accuracy figure, may be reported.
+
+## Market and baseline data
+
+### CREA MLS® Home Price Index — manual
+Monthly benchmark prices, 2005 to September 2026, by region and property type.
+Covers Cambridge, Kitchener-Waterloo, Greater Toronto, Mississauga and Oakville-Milton.
+This is the backbone of the fair value estimate.
+
+- Source: <https://www.crea.ca/housing-market-stats/mls-home-price-index/hpi-tool/>
+  then "Download the data" and take the MLS® HPI zip
+- Lands in: `data/raw/crea_hpi/` — four workbooks, of which FairAsk reads
+  `Not Seasonally Adjusted (M).xlsx`
+- Terms: **CREA copyright.** Used for calculations only. The files are not
+  republished and no benchmark table is committed or posted.
+- Downloaded: October 2026 (data through September 2026)
+
+### TRREB monthly aggregates — manual
+Sales, new listings, sales-to-new-listings ratio, months of inventory, days on
+market and sale-to-list ratio for 65 GTA areas, 1996 to October 2022.
+
+- Source: [michaelarman/GTA_Housing](https://github.com/michaelarman/GTA_Housing)
+- Terms: collected with TRREB's permission by the repository author. Credited here.
+
+### TRREB community reports — manual
+Quarterly market statistics by community, including Waterloo Region.
+
+- Source: <https://public.trreb.ca/> market statistics, then community reports (PDF)
+- Terms: public documents. Cited as TRREB.
+
+### Waterloo Region monthly home prices — manual
+Monthly average price, median price and sales count by property type, 2018 to 2024.
+
+- Source: <https://www.kaggle.com/datasets/milankozo/waterloo-region-home-prices-2018-2024>
+- Terms: **CC0** — public domain, no restrictions.
+- Manual because Kaggle downloads need an account and an API token.
+
+### CMHC Rental Market Survey 2025 — manual
+Average rent by bedroom count per metro area, for the investor view.
+
+- Source: CMHC Housing Market Information Portal, Rental Market Survey
+- Terms: open data. Cited as CMHC.
+
+### Bank of Canada posted mortgage rate — manual
+Weekly 5-year conventional mortgage rate, series `V80691335`, for the mortgage
+and stress test math.
+
+- Source: Bank of Canada Valet API, <https://www.bankofcanada.ca/valet/observations/V80691335/json>
+- Terms: open. Cited as Bank of Canada.
+- Not scripted yet — it is first needed in Phase 4.
+
 ## Feature enrichment (joined by location)
 
 These fill gaps in the sold datasets.
@@ -46,3 +104,25 @@ Every property boundary in Toronto, used to measure the lot each sale sits on.
 - **Not version-pinned.** The City serves the current refresh, so this is the
   one source whose bytes can change under the project. The copy FairAsk was
   built against: refreshed 2026-10-26, downloaded 2026-10-27, 57,578,200 bytes.
+
+The rest are manual: each needs a form, an account, or a map query that is
+easier to do by hand once.
+
+| Source | Adds | Terms |
+|---|---|---|
+| Toronto Building Construction Dates (Borealis, UofT Map & Data Library) | Year built per parcel, pre-1901 to 2003 | **CC BY-NC** — non-commercial, reference use. Must be stated in the model card |
+| [Toronto Cleared Building Permits](https://open.toronto.ca/dataset/building-permits-cleared-permits/) | New builds and renovations, 2000 onward | Open Government Licence – Toronto |
+| Kitchener, Waterloo, Cambridge, Mississauga and Brampton building permits | Year built for newer homes, renovations, finished basements; Waterloo property area; Cambridge lot area | Municipal ArcGIS open data, per-city open licences |
+| [StatCan Open Database of Buildings](https://www.statcan.gc.ca/en/lode/databases/odb) | Building footprint area, for estimating square footage | Open Government Licence – Canada |
+
+## Known gaps
+
+Recorded here so no one later mistakes a gap for a modelling choice. **These are
+not filled with synthetic or estimated values.**
+
+- No free Waterloo Region sold prices. Until local comps arrive, the model is
+  trained on GTA sales only, and no claim about Waterloo Region accuracy can be made.
+- No GTA sales after 2021. The newest sale in either training set is from May
+  2021, so recent market movement has to come from the HPI rather than from sales.
+- No lot size for Kitchener.
+- No year built for Waterloo Region homes older than about 1997.
