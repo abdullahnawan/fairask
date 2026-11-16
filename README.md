@@ -3,8 +3,9 @@
 Is the asking price fair? Paste a house listing from Waterloo Region or the GTA
 and FairAsk returns a fair value range, a verdict, and the top reasons behind it.
 
-**Status: early development.** No model, API or frontend exists yet. No accuracy
-numbers are published, because none have been measured.
+**Status: model trained, no API or frontend yet.** The valuation model is
+evaluated on GTA sales only; see `docs/model_card.md` for how, and what the
+numbers do not cover. Nothing has been measured in Waterloo Region.
 
 ## What it does
 
