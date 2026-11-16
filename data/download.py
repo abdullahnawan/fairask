@@ -19,6 +19,7 @@ as manual in SOURCES.md, with the path to save them to.
 
 from __future__ import annotations
 
+import shutil
 import sys
 import urllib.request
 from pathlib import Path
@@ -76,6 +77,30 @@ SOURCES: dict[str, tuple[str, str]] = {
 }
 
 
+# Identifies the project to site operators; some servers refuse Python's default.
+USER_AGENT = "FairAsk/0.1 (portfolio project; https://github.com/abdullahnawan/fairask)"
+
+
+def save(url: str, dest: Path) -> Path:
+    """Download url to dest, refusing an HTML page in place of the data file."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    # Download to a partial name first so an interrupted run never leaves a
+    # truncated file that the next run would accept as complete.
+    partial = dest.with_name(dest.name + ".partial")
+    try:
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(request, timeout=300) as response, open(partial, "wb") as out:
+            # A server can answer 200 with an outage or login page. Saving that as
+            # the data file hides the failure until something tries to parse it.
+            if response.headers.get_content_type() == "text/html":
+                raise ValueError(f"{url}: server returned an HTML page, not the data file")
+            shutil.copyfileobj(response, out)
+        partial.replace(dest)
+    finally:
+        partial.unlink(missing_ok=True)
+    return dest
+
+
 def fetch(name: str) -> Path:
     """Download one source unless it is already on disk. Returns its path."""
     url, relative = SOURCES[name]
@@ -84,20 +109,8 @@ def fetch(name: str) -> Path:
         print(f"{name}: already have {relative}")
         return dest
 
-    dest.parent.mkdir(parents=True, exist_ok=True)
     print(f"{name}: downloading {url}")
-    # Download to a partial name first so an interrupted run never leaves a
-    # truncated file that the next run would accept as complete.
-    partial = dest.with_name(dest.name + ".partial")
-    try:
-        _, headers = urllib.request.urlretrieve(url, partial)
-        # A server can answer 200 with an outage or login page. Saving that as
-        # the data file hides the failure until something tries to parse it.
-        if headers.get_content_type() == "text/html":
-            raise ValueError(f"{name}: server returned an HTML page, not the data file")
-        partial.replace(dest)
-    finally:
-        partial.unlink(missing_ok=True)
+    save(url, dest)
     print(f"{name}: saved {relative} ({dest.stat().st_size:,} bytes)")
     return dest
 

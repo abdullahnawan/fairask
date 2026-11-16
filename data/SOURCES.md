@@ -42,18 +42,37 @@ Local sales, for validating the model where it is actually meant to be used.
 
 ## Market and baseline data
 
-### CREA MLS® Home Price Index — manual
+### CREA MLS® Home Price Index — `python data/market.py`
 Monthly benchmark prices, 2005 to September 2026, by region and property type.
 Covers Cambridge, Kitchener-Waterloo, Greater Toronto, Mississauga and Oakville-Milton.
 This is the backbone of the fair value estimate.
 
-- Source: <https://www.crea.ca/housing-market-stats/mls-home-price-index/hpi-tool/>
-  then "Download the data" and take the MLS® HPI zip
+- Source: <https://www.crea.ca/housing-market-stats/mls-home-price-index/hpi-tool/>.
+  `data/market.py` reads that page, takes the newest `MLS_HPI_<Mon>_<Year>.zip`
+  link and extracts it. The zip is named for the month CREA **published** it, so
+  `MLS_HPI_Oct_2026.zip` holds data through September 2026.
 - Lands in: `data/raw/crea_hpi/` — four workbooks, of which FairAsk reads
   `Not Seasonally Adjusted (M).xlsx`
 - Terms: **CREA copyright.** Used for calculations only. The files are not
   republished and no benchmark table is committed or posted.
-- Downloaded: October 2026 (data through September 2026)
+- Downloaded: October 2026 by hand; re-fetched by the script 2026-11-16 (same
+  release, data through September 2026)
+
+### TRREB Market Watch — `python data/market.py`
+Monthly report for every GTA municipality and Toronto district: sales, average
+and median price, new and active listings, sales-to-new-listings ratio (SNLR),
+months of inventory, sale-to-list ratio and days on market. This is what the
+deal report uses to call a buyer's or seller's market.
+
+- Source: <https://trreb.ca/market-data/market-watch/>. The script takes the
+  newest `mwYYMM.pdf` link (public, no login; robots.txt only disallows /wp-admin/).
+- Lands in: `data/raw/trreb/mwYYMM.pdf`, parsed to `data/processed/trreb_market.csv`
+  (the monthly "All Home types" table only).
+- Needs `pdftotext` on PATH (xpdf or poppler; Git for Windows ships it).
+- Check: every row must satisfy sales x average price = dollar volume to within a
+  dollar per sale. 76 areas, 0 dropped, for October 2026.
+- Terms: public report. Cited as TRREB. Only the aggregates are used.
+- Downloaded: 2026-11-16 (October 2026 report)
 
 ### TRREB monthly aggregates — manual
 Sales, new listings, sales-to-new-listings ratio, months of inventory, days on
