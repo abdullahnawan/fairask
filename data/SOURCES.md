@@ -111,15 +111,53 @@ Every property boundary in Toronto, used to measure the lot each sale sits on.
   per the `.prj`. Area in that projection is inflated by about 1.91x at
   Toronto's latitude, and `ml/parcels.py` corrects for it.
 
+### `toronto_permits_2000_2016` and `toronto_permits_2017` — scripted
+Every building permit the City has closed since 2000, with the street address,
+the kind of work, and the dates it was issued and completed. A permit for a new
+house or new building gives the year a home was built, which the sold data lacks.
+
+- Source: [Toronto Cleared Building Permits](https://open.toronto.ca/dataset/building-permits-cleared-permits/)
+  — the "Cleared Permits 2000 to 2016" and "Cleared Building Permits since 2017" CSVs
+- Lands in: `data/raw/toronto_permits/cleared_permits_2000_2016.csv` and
+  `data/raw/toronto_permits/cleared_permits_since_2017.csv`
+- Terms: Open Government Licence – Toronto. Not committed or republished.
+- **Not version-pinned.** The since-2017 file is refreshed daily. The copies
+  FairAsk was built against: 2000-2016 last modified 2025-07-08, 155,623,064
+  bytes; since-2017 last modified 2026-11-14, 153,068,855 bytes.
+- The City notes records applied for before 1999-10-01 are likely incomplete,
+  so year built from permits is only trustworthy for homes built in 2000 or later.
+
+### `statcan_odb_on_1`, `statcan_odb_on_2`, `statcan_odb_on_3` — scripted
+Building footprints for Ontario from Statistics Canada's Open Database of
+Buildings, version 3.0 (released 2025-04-15), as three zipped GeoPackages.
+Records carry the footprint polygon and, where the source city supplied them,
+`sq_ft`, `floors`, `year_built` and `address`. Used to estimate square footage
+where a Toronto listing has none.
+
+- Source: [The Open Database of Buildings](https://www150.statcan.gc.ca/n1/pub/34-26-0001/342600012018001-eng.htm)
+- Lands in: `data/raw/statcan_odb/ODB_v3_ON_1.zip`, `_2.zip`, `_3.zip`
+  (about 375, 369 and 299 MB)
+- Terms: Open Government Licence – Canada. Not committed or republished.
+- Which of the three parts covers Toronto is not documented, so all three are
+  downloaded and the Toronto rows are selected by the `csdname` attribute.
+  Measured: parts 1 and 2 hold 567,869 Toronto buildings; part 3 holds none.
+  `ml/footprints.py` unzips the two GeoPackages next to their downloads,
+  because SQLite cannot read inside a zip.
+- **For Toronto, sq_ft and floors are empty on every record** (StatCan writes
+  `..` for missing). Only the outline, an address on about 70%, and a
+  `height` with a median of 4.1 m are present. That height is too low to be a
+  two-storey house, so it is not used as a storey count.
+- The geometry is EPSG:3347, Statistics Canada Lambert, which is conformal, not
+  equal-area: at Toronto it stretches lengths by 1.024, so areas are divided by
+  1.0485.
+
 The rest are manual: each needs a form, an account, or a map query that is
 easier to do by hand once.
 
 | Source | Adds | Terms |
 |---|---|---|
 | Toronto Building Construction Dates (Borealis, UofT Map & Data Library) | Year built per parcel, pre-1901 to 2003 | **CC BY-NC** — non-commercial, reference use. Must be stated in the model card |
-| [Toronto Cleared Building Permits](https://open.toronto.ca/dataset/building-permits-cleared-permits/) | New builds and renovations, 2000 onward | Open Government Licence – Toronto |
 | Kitchener, Waterloo, Cambridge, Mississauga and Brampton building permits | Year built for newer homes, renovations, finished basements; Waterloo property area; Cambridge lot area | Municipal ArcGIS open data, per-city open licences |
-| [StatCan Open Database of Buildings](https://www.statcan.gc.ca/en/lode/databases/odb) | Building footprint area, for estimating square footage | Open Government Licence – Canada |
 
 ## Known gaps
 
@@ -131,7 +169,15 @@ not filled with synthetic or estimated values.**
 - No GTA sales after 2021. The newest sale in either training set is from May
   2021, so recent market movement has to come from the HPI rather than from sales.
 - **The Toronto sold dataset carries no sale date at all** - there is no such
-  column. Its rows therefore cannot be time-adjusted, and only Brampton is.
+  column. Its rows are anchored to **June 2019** by decision (2026-11-15), as
+  the single constant `TORONTO_ASSUMED_MONTH` in `ml/adjust.py`. The evidence:
+  years mentioned in descriptions peak in 2018 (410 rows) and 2019 (262) and
+  collapse after (2020: 18, 2021: 9); the latest stated build year is 2018;
+  MLS numbers sit in one narrow band. The Greater Toronto benchmark moved
+  about 5% across 2019, so a mid-year anchor bounds the level error near
+  ±2.5%. Every Toronto `price_today` inherits that error, and it is an
+  inference, not a measurement. Building permits issued after 2019 cannot
+  describe a 2019 sale, so year built is treated as unknown for those.
 - CREA publishes no Brampton index and no semi-detached series. Brampton sales
   are adjusted with the Greater Toronto benchmark and semis with the
   single-family one. Both substitutions are in `ml/adjust.py`.

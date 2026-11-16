@@ -45,6 +45,34 @@ SOURCES: dict[str, tuple[str, str]] = {
         "d9a29cdd-6434-4b12-96f7-0d3071873d05/download/property_bnds_gcc_wgs84.zip",
         "toronto_parcels/property_bnds_gcc_wgs84.zip",
     ),
+    # Two files because the City splits the series; both are needed for a
+    # full 2000-onward view of new builds.
+    "toronto_permits_2000_2016": (
+        "https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/"
+        "9e42a85b-180f-4dc5-b0d7-d46661a6c0ec/resource/"
+        "c647bdae-0127-425e-86e6-2d88ff0e2adf/download/export_202507081211.csv",
+        "toronto_permits/cleared_permits_2000_2016.csv",
+    ),
+    "toronto_permits_2017": (
+        "https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/"
+        "9e42a85b-180f-4dc5-b0d7-d46661a6c0ec/resource/"
+        "b41c3e9e-4d2d-4b09-a789-9569d8da407c/download/cleared-building-permits-since-2017.csv",
+        "toronto_permits/cleared_permits_since_2017.csv",
+    ),
+    # StatCan splits Ontario into three parts; which holds Toronto is not
+    # documented, so all three are fetched.
+    "statcan_odb_on_1": (
+        "https://www150.statcan.gc.ca/pub/34-26-0001/2018001/zip/ODB_v3_ON_1.zip",
+        "statcan_odb/ODB_v3_ON_1.zip",
+    ),
+    "statcan_odb_on_2": (
+        "https://www150.statcan.gc.ca/pub/34-26-0001/2018001/zip/ODB_v3_ON_2.zip",
+        "statcan_odb/ODB_v3_ON_2.zip",
+    ),
+    "statcan_odb_on_3": (
+        "https://www150.statcan.gc.ca/pub/34-26-0001/2018001/zip/ODB_v3_ON_3.zip",
+        "statcan_odb/ODB_v3_ON_3.zip",
+    ),
 }
 
 
