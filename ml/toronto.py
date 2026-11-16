@@ -96,6 +96,8 @@ def load_toronto(path: Path = DEFAULT_CSV) -> pd.DataFrame:
     clean = pd.DataFrame(
         {
             "mls": in_scope["mls"].astype(str),
+            # Street part only; city, province and country are constant.
+            "address": in_scope["full_address"].astype(str).str.split(",").str[0].str.strip(),
             "sold_price": in_scope["final_price"].astype("int64"),
             # Whole dollars; the API converts to cents. list_price is for red
             # flags and market context only, never a model feature: it carries

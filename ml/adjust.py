@@ -16,7 +16,10 @@ judgements, not facts about the workbook:
 * **Property type.** CREA has no semi-detached series, so semis are adjusted
   with Single_Family, the same series as detached.
 
-    python ml/adjust.py        # writes data/processed/brampton_adjusted.csv
+The Toronto source has no sale date, so its rows are anchored to one month by
+decision; see TORONTO_ASSUMED_MONTH below and data/SOURCES.md for the evidence.
+
+    python ml/adjust.py        # writes data/processed/{brampton,toronto}_adjusted.csv
 """
 
 from __future__ import annotations
@@ -28,7 +31,15 @@ import pandas as pd
 REPO = Path(__file__).resolve().parent.parent
 HPI_TABLE = REPO / "data" / "processed" / "hpi_monthly.csv"
 BRAMPTON_CLEAN = REPO / "data" / "processed" / "brampton_clean.csv"
-OUTPUT = REPO / "data" / "processed" / "brampton_adjusted.csv"
+BRAMPTON_OUTPUT = REPO / "data" / "processed" / "brampton_adjusted.csv"
+TORONTO_CLEAN = REPO / "data" / "processed" / "toronto_clean.csv"
+TORONTO_OUTPUT = REPO / "data" / "processed" / "toronto_adjusted.csv"
+
+# Decided 2026-11-15, not measured: the Toronto file records no sale date.
+# Years mentioned in descriptions peak in 2018-2019 and collapse after, the
+# latest stated build year is 2018, and MLS numbers sit in one narrow band.
+# Mid-2019 bounds the level error at about +/-2.5% across that year.
+TORONTO_ASSUMED_MONTH = pd.Timestamp("2019-06-01")
 
 # city a sale is in -> the CREA region whose benchmark tracks it
 HPI_REGION = {
@@ -103,24 +114,11 @@ def time_adjust(
     return adjusted
 
 
-def main() -> None:
-    # Only Brampton is adjusted here. The Toronto source carries no sale date at
-    # all, so there is no month to adjust its rows from; see data/SOURCES.md.
-    if not BRAMPTON_CLEAN.exists():
-        raise FileNotFoundError(
-            f"{BRAMPTON_CLEAN} not found. Run: python ml/brampton.py"
-        )
-
-    sales = pd.read_csv(BRAMPTON_CLEAN, parse_dates=["sold_date", "contract_date"])
-    hpi = load_hpi_table()
-    adjusted = time_adjust(sales, hpi, city="Brampton")
-    adjusted.to_csv(OUTPUT, index=False)
-
-    last_sold = adjusted["sold_month"].max()
-    print(f"{len(adjusted):,} Brampton sales -> {OUTPUT.relative_to(REPO)}")
+def _report(adjusted: pd.DataFrame, city: str, output: Path, hpi: pd.DataFrame) -> None:
+    print(f"{len(adjusted):,} {city} sales -> {output.relative_to(REPO)}")
     print(
-        f"sold {adjusted['sold_month'].min():%Y-%m} to {last_sold:%Y-%m}, "
-        f"adjusted to {hpi['month'].max():%Y-%m}\n"
+        f"sold {adjusted['sold_month'].min():%Y-%m} to {adjusted['sold_month'].max():%Y-%m}, "
+        f"adjusted to {hpi['month'].max():%Y-%m}"
     )
     print(
         adjusted.groupby("property_type")
@@ -131,8 +129,28 @@ def main() -> None:
             factor=("hpi_factor", "median"),
         )
         .round(3)
-        .to_string()
+        .to_string(),
+        end="\n\n",
     )
+
+
+def main() -> None:
+    for path, script in ((BRAMPTON_CLEAN, "brampton"), (TORONTO_CLEAN, "toronto")):
+        if not path.exists():
+            raise FileNotFoundError(f"{path} not found. Run: python ml/{script}.py")
+    hpi = load_hpi_table()
+
+    brampton = pd.read_csv(BRAMPTON_CLEAN, parse_dates=["sold_date", "contract_date"])
+    adjusted = time_adjust(brampton, hpi, city="Brampton")
+    adjusted.to_csv(BRAMPTON_OUTPUT, index=False)
+    _report(adjusted, "Brampton", BRAMPTON_OUTPUT, hpi)
+
+    toronto = pd.read_csv(TORONTO_CLEAN)
+    toronto["sold_date"] = TORONTO_ASSUMED_MONTH
+    adjusted = time_adjust(toronto, hpi, city="Toronto")
+    adjusted.to_csv(TORONTO_OUTPUT, index=False)
+    print(f"Toronto sale month assumed: {TORONTO_ASSUMED_MONTH:%Y-%m} (see data/SOURCES.md)")
+    _report(adjusted, "Toronto", TORONTO_OUTPUT, hpi)
 
 
 if __name__ == "__main__":
