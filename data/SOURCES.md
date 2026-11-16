@@ -94,11 +94,19 @@ Monthly average price, median price and sales count by property type, 2018 to 20
 - Terms: **CC0** — public domain, no restrictions.
 - Manual because Kaggle downloads need an account and an API token.
 
-### CMHC Rental Market Survey 2025 — manual
-Average rent by bedroom count per metro area, for the investor view.
+### CMHC Rental Market Survey 2025 — `python data/market.py`
+Average rent paid by a new tenant ("turnover units"), by bedroom count, for the
+Toronto and Kitchener-Cambridge-Waterloo metro areas, October 2025. Used for the
+investor view's rent estimate.
 
-- Source: CMHC Housing Market Information Portal, Rental Market Survey
+- Source: <https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables>.
+  The script takes the newest `rmr-canada-<year>-en.xlsx` and reads Table 6.0.
+- Lands in: `data/raw/cmhc/`, parsed to `data/processed/cmhc_rents.csv` with
+  CMHC's reliability grade (a excellent to d fair; suppressed values left empty).
+- Limit: the survey covers purpose-built rental apartments of three or more
+  units. For a detached or semi it is a floor, not a comparable.
 - Terms: open data. Cited as CMHC.
+- Downloaded: 2026-11-16 (2025 survey, published December 2025)
 
 ### Bank of Canada posted mortgage rate — manual
 Weekly 5-year conventional mortgage rate, series `V80691335`, for the mortgage

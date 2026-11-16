@@ -6,7 +6,15 @@ real ones had on 2026-11-16.
 
 from __future__ import annotations
 
-from market import newest_hpi_link, newest_market_watch_link, parse_market_watch
+import pandas as pd
+
+from market import (
+    newest_cmhc_link,
+    newest_hpi_link,
+    newest_market_watch_link,
+    parse_market_watch,
+    parse_turnover_rents,
+)
 
 HPI_PAGE = """
 <a href="https://www.crea.ca/files/mls-hpi-data/MLS_HPI_Sep_2026.zip">old</a>
@@ -59,3 +67,44 @@ def test_year_to_date_rows_never_match() -> None:
     """The YTD table has no SNLR column; mixing it in would double-count."""
     table, _ = parse_market_watch(PDF_TEXT, "2026-10")
     assert (table["sales"] != 4037).all()
+
+
+def test_newest_cmhc_workbook_drops_the_query_string() -> None:
+    page = (
+        'href="https://assets.cmhc-schl.gc.ca/sites/x/2024/rmr-canada-2024-en.xlsx?rev=1"'
+        'href="https://assets.cmhc-schl.gc.ca/sites/x/2025/rmr-canada-2025-en.xlsx?rev=2"'
+    )
+    assert newest_cmhc_link(page) == "https://assets.cmhc-schl.gc.ca/sites/x/2025/rmr-canada-2025-en.xlsx"
+
+
+def table_6() -> pd.DataFrame:
+    """Table 6.0 in miniature, with the traps the real one has: the title also
+    says "Non-turnover", the sitting-tenant block repeats the bedroom labels,
+    and a suppressed value is "**". Each bedroom group is four columns:
+    Oct-24 value, its grade, Oct-25 value, its grade."""
+    _ = None
+    return pd.DataFrame([
+        ["6.0 Average Rent for Turnover and Non-turnover Units"] + [_] * 17,
+        [_, _, "Turnover units"] + [_] * 11 + ["Non-turnover units", _, _, _],
+        [_, _, "Studio", _, _, _, "2 Bedroom", _, _, _, "Total", _, _, _, "Studio", _, _, _],
+        [_] * 18,
+        ["Centre", _] + ["Oct-24", _, "Oct-25", _] * 4,
+        ["Toronto CMA", _, "1,830", "a", "1,708", "a", "2,612", "a", "2,547", "a",
+         "2,358", "a", "2,256", "a", "1,409", "a", "1,443", "a"],
+        ["Kitchener-Cambridge-Waterloo CMA", _, "1,430", "d", "**", _, "2,137", "a", "2,111", "a",
+         "2,004", "a", "1,968", "a", "1,231", "b", "1,208", "b"],
+    ])
+
+
+def test_turnover_rents_take_the_latest_survey_and_skip_sitting_tenants() -> None:
+    rents = parse_turnover_rents(table_6())
+    assert set(rents["survey"]) == {"2025-10"}
+    toronto = rents[rents["centre"] == "Toronto CMA"].set_index("bedrooms")["rent"]
+    assert toronto.to_dict() == {"Studio": 1708, "2 Bedroom": 2547}
+    assert 1443 not in set(rents["rent"].dropna())   # the non-turnover studio
+
+
+def test_suppressed_rent_is_empty_not_zero() -> None:
+    rents = parse_turnover_rents(table_6())
+    kcw_studio = rents[(rents["centre"] == "Kitchener-Cambridge-Waterloo CMA") & (rents["bedrooms"] == "Studio")]
+    assert pd.isna(kcw_studio["rent"].iloc[0])

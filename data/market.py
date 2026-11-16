@@ -1,5 +1,5 @@
-"""Fetch the newest public market statistics: CREA's HPI workbook and TRREB's
-monthly Market Watch report.
+"""Fetch the newest public market statistics: CREA's HPI workbook, TRREB's
+monthly Market Watch report and CMHC's yearly Rental Market Survey tables.
 
 Both are published every month on public pages with no login. Each page links
 the newest file under a name that changes with the month
@@ -15,6 +15,11 @@ requests, and a User-Agent that names the project.
   the sales-to-new-listings ratio (SNLR), months of inventory, sale-to-list
   ratio and days on market for every GTA municipality and Toronto district.
   Those are what the deal report needs to call a buyer's or seller's market.
+* **CMHC Rental Market Survey.** Table 6.0 gives the average rent paid by a
+  *new* tenant (a "turnover unit") by bedroom count for each metro area. That,
+  not the rent of sitting tenants, is what an investor buying today can charge.
+  It covers purpose-built apartments of three or more units, so for a house it
+  is a floor rather than a match; the investor view says so.
 
 The PDF is read with `pdftotext -raw` (xpdf/poppler, bundled with Git for
 Windows). Layout mode was tried first and shifts cells into neighbouring rows
@@ -22,7 +27,7 @@ wherever a cell is blank; raw mode keeps each row whole. Every parsed row is
 still checked: sales x average price must reproduce the dollar volume, and a
 row that fails is dropped and counted rather than trusted.
 
-    python data/market.py      # writes data/processed/trreb_market.csv
+    python data/market.py      # writes data/processed/{trreb_market,cmhc_rents}.csv
 """
 
 from __future__ import annotations
@@ -41,11 +46,17 @@ from download import RAW, USER_AGENT, save
 
 PROCESSED = RAW.parent / "processed"
 OUTPUT = PROCESSED / "trreb_market.csv"
+RENTS_OUTPUT = PROCESSED / "cmhc_rents.csv"
 
 HPI_PAGE = "https://www.crea.ca/housing-market-stats/mls-home-price-index/hpi-tool/"
 HPI_LINK = re.compile(r"https://www\.crea\.ca/files/mls-hpi-data/MLS_HPI_([A-Z][a-z]{2})_(\d{4})\.zip")
 TRREB_PAGE = "https://trreb.ca/market-data/market-watch/"
 TRREB_LINK = re.compile(r"/wp-content/files/market-stats/market-watch/mw(\d{2})(\d{2})\.pdf")
+CMHC_PAGE = ("https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/"
+             "housing-data/data-tables/rental-market/rental-market-report-data-tables")
+CMHC_LINK = re.compile(r"https://assets\.cmhc-schl\.gc\.ca/[^\"' ]*/rmr-canada-(\d{4})-en\.xlsx")
+# The metro areas FairAsk covers, as CMHC names them.
+CMHC_CENTRES = ("Toronto CMA", "Kitchener-Cambridge-Waterloo CMA")
 
 # Seconds between requests to the same site. Two sites, four requests a run:
 # this is courtesy, not throttling.
@@ -80,6 +91,12 @@ def newest_market_watch_link(page: str) -> str | None:
     return "https://trreb.ca" + max(links, key=links.get) if links else None
 
 
+def newest_cmhc_link(page: str) -> str | None:
+    """The newest Canada-wide Rental Market Survey workbook, without its cache-busting query."""
+    links = {m.group(0): m.group(1) for m in CMHC_LINK.finditer(page)}
+    return max(links, key=links.get) if links else None
+
+
 def fetch_hpi() -> Path:
     """Download the newest HPI zip and extract its workbooks for ml/hpi.py."""
     url = newest_hpi_link(get_page(HPI_PAGE))
@@ -103,6 +120,50 @@ def fetch_market_watch() -> Path:
         time.sleep(PAUSE)
         save(url, pdf)
     return pdf
+
+
+def fetch_cmhc() -> Path:
+    url = newest_cmhc_link(get_page(CMHC_PAGE))
+    if url is None:
+        raise ValueError(f"no rmr-canada-<year>-en.xlsx link on {CMHC_PAGE}; the page has changed")
+    workbook = RAW / "cmhc" / url.rsplit("/", 1)[1]
+    if not workbook.exists():
+        time.sleep(PAUSE)
+        save(url, workbook)
+    return workbook
+
+
+def parse_turnover_rents(sheet: pd.DataFrame, centres: tuple[str, ...] = CMHC_CENTRES) -> pd.DataFrame:
+    """Latest-year turnover rent by bedroom count from Table 6.0.
+
+    The sheet is laid out for print: a "Turnover units" block (Studio, 1, 2,
+    3+ bedrooms, Total) then a "Non-turnover units" block, a bedroom label over
+    each group and two survey months per bedroom. Columns are found from those
+    labels, not fixed positions, and the scan stops at the first "Total" so the
+    sitting-tenant block is never read. A value CMHC suppressed ("**") is left empty.
+    """
+    labels = sheet.fillna("").astype(str).apply(lambda column: column.str.strip())
+    header = labels.index[(labels == "Turnover units").any(axis=1)][0]
+    bedroom_row, month_row = labels.loc[header + 1], labels.loc[header + 3]
+    survey = max(pd.to_datetime(v, format="%b-%y") for v in month_row if re.fullmatch(r"[A-Z][a-z]{2}-\d{2}", v))
+    rows, bedroom = [], None
+    for column in labels.columns:
+        if bedroom_row[column]:
+            bedroom = bedroom_row[column]
+        if bedroom == "Total":
+            break
+        if month_row[column] != f"{survey:%b-%y}":
+            continue
+        for centre in centres:
+            match = labels[labels[0] == centre]
+            value = match.iloc[0][column].replace(",", "") if len(match) else ""
+            grade = match.iloc[0][column + 1] if len(match) else ""
+            rows.append({
+                "centre": centre, "survey": f"{survey:%Y-%m}", "bedrooms": bedroom,
+                "rent": int(value) if value.isdigit() else None,
+                "reliability": grade if grade in ("a", "b", "c", "d") else None,
+            })
+    return pd.DataFrame(rows).astype({"rent": "Int64"})
 
 
 def parse_market_watch(text: str, month: str) -> tuple[pd.DataFrame, int]:
@@ -140,6 +201,14 @@ def main() -> None:
     table.to_csv(OUTPUT, index=False)
     print(f"TRREB Market Watch {pdf.name}: {len(table)} areas -> {OUTPUT.relative_to(RAW.parent)}"
           f" ({dropped} rows failed the dollar-volume check and were dropped)")
+
+    workbook = fetch_cmhc()
+    rents = parse_turnover_rents(pd.read_excel(workbook, "Table 6.0", header=None))
+    if rents["rent"].isna().all():
+        raise ValueError(f"no turnover rents parsed from {workbook.name}; the table layout has changed")
+    rents.to_csv(RENTS_OUTPUT, index=False)
+    print(f"CMHC {workbook.name}: {len(rents)} rents -> {RENTS_OUTPUT.relative_to(RAW.parent)}")
+    print(rents.to_string(index=False))
 
 
 if __name__ == "__main__":
