@@ -89,6 +89,12 @@ class TestDownPaymentAndInsurance:
     def test_30_year_amortization_adds_020(self) -> None:
         assert cmhc_premium(500_000 * DOLLAR, 25_000 * DOLLAR, amortization_years=30) == 19_950 * DOLLAR
 
+    def test_insured_amortization_over_30_years_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="30 years"):
+            cmhc_premium(500_000 * DOLLAR, 25_000 * DOLLAR, amortization_years=35)
+        # Uninsured at 20% down: any amortization the lender agrees to.
+        assert cmhc_premium(500_000 * DOLLAR, 100_000 * DOLLAR, amortization_years=35) == 0
+
     def test_below_minimum_down_is_refused(self) -> None:
         with pytest.raises(ValueError, match="minimum down payment"):
             cmhc_premium(600_000 * DOLLAR, 30_000 * DOLLAR)

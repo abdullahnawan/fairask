@@ -55,6 +55,8 @@ INSURED_PRICE_LIMIT_CENTS = 1_500_000_00
 CMHC_PREMIUMS = ((Decimal("0.85"), Decimal("0.028")), (Decimal("0.90"), Decimal("0.031")),
                  (Decimal("0.95"), Decimal("0.04")))
 LONG_AMORTIZATION_SURCHARGE = Decimal("0.002")
+# 30 years only for first-time buyers and new builds; 25 for everyone else.
+MAX_INSURED_AMORTIZATION = 30
 
 QUALIFYING_FLOOR = 0.0525
 QUALIFYING_BUFFER = 0.02
@@ -119,6 +121,8 @@ def cmhc_premium(price_cents: int, down_cents: int, amortization_years: int = 25
     ltv = Decimal(loan) / Decimal(price_cents)
     if ltv <= Decimal("0.80"):
         return 0
+    if amortization_years > MAX_INSURED_AMORTIZATION:
+        raise ValueError(f"insured mortgages cannot be amortized over {MAX_INSURED_AMORTIZATION} years")
     rate = next(premium for limit, premium in CMHC_PREMIUMS if ltv <= limit)
     if amortization_years > 25:
         rate += LONG_AMORTIZATION_SURCHARGE
@@ -157,7 +161,10 @@ def stress_test(
     monthly_heat_cents: int,
     monthly_debt_cents: int = 0,
 ) -> StressTest:
-    """Would a lender approve this mortgage at the qualifying rate?"""
+    """Would a lender approve this mortgage at the qualifying rate?
+
+    principal_cents is the whole loan, including any CMHC premium added to it.
+    """
     _require_cents(monthly_income_cents, monthly_property_tax_cents, monthly_heat_cents, monthly_debt_cents)
     if monthly_income_cents == 0:
         raise ValueError("income must be positive")
