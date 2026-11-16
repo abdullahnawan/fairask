@@ -76,6 +76,9 @@ def investor_view(
         raise TypeError("money must be integer cents")
     if price_cents <= 0 or min(money) < 0:
         raise ValueError("price must be positive and costs cannot be negative")
+    # A share passed as a percentage (5 for 5%) would wipe out the cash flow.
+    if not (0 <= vacancy_share < 1 and 0 <= maintenance_share < 1):
+        raise ValueError("vacancy and maintenance are shares of rent between 0 and 1")
     allowances = round(rent_cents * (vacancy_share + maintenance_share))
     costs = mortgage_payment_cents + property_tax_cents + condo_fees_cents + insurance_cents
     return InvestorView(

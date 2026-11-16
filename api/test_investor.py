@@ -58,6 +58,10 @@ class TestInvestorView:
         with pytest.raises(TypeError):
             investor_view(price_cents=500_000.0, rent_cents=2_000_00, mortgage_payment_cents=0)  # type: ignore[arg-type]
 
+    def test_a_percentage_passed_as_a_share_is_refused(self) -> None:
+        with pytest.raises(ValueError, match="between 0 and 1"):
+            investor_view(price_cents=500_000_00, rent_cents=2_000_00, mortgage_payment_cents=0, vacancy_share=5)
+
     def test_price_must_be_positive(self) -> None:
         with pytest.raises(ValueError):
             investor_view(price_cents=0, rent_cents=2_000_00, mortgage_payment_cents=0)
