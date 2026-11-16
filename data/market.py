@@ -27,6 +27,7 @@ row that fails is dropped and counted rather than trusted.
 
 from __future__ import annotations
 
+import calendar
 import re
 import subprocess
 import time
@@ -49,7 +50,6 @@ TRREB_LINK = re.compile(r"/wp-content/files/market-stats/market-watch/mw(\d{2})(
 # Seconds between requests to the same site. Two sites, four requests a run:
 # this is courtesy, not throttling.
 PAUSE = 2.0
-MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 # One row of the monthly "All Home types" table. Year-to-date and per-type
 # tables have no SNLR or months-of-inventory column, so they never match.
@@ -70,7 +70,7 @@ def get_page(url: str) -> str:
 
 def newest_hpi_link(page: str) -> str | None:
     """The HPI zip for the latest month linked on CREA's page."""
-    links = {m.group(0): (int(m.group(2)), MONTHS.index(m.group(1))) for m in HPI_LINK.finditer(page)}
+    links = {m.group(0): (int(m.group(2)), list(calendar.month_abbr).index(m.group(1))) for m in HPI_LINK.finditer(page)}
     return max(links, key=links.get) if links else None
 
 
@@ -133,6 +133,9 @@ def main() -> None:
         encoding="utf-8", errors="replace",
     ).stdout
     table, dropped = parse_market_watch(text, f"20{yy}-{mm}")
+    if table.empty:
+        # Keep last month's file rather than replace it with nothing.
+        raise ValueError(f"no summary rows parsed from {pdf.name}; the report layout has changed")
     PROCESSED.mkdir(exist_ok=True)
     table.to_csv(OUTPUT, index=False)
     print(f"TRREB Market Watch {pdf.name}: {len(table)} areas -> {OUTPUT.relative_to(RAW.parent)}"
