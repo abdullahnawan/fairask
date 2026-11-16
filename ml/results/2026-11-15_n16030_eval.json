@@ -1,0 +1,117 @@
+{
+  "date": "2026-11-15",
+  "rows": 16030,
+  "rows_by_source": {
+    "toronto": 14892,
+    "brampton": 1138
+  },
+  "holdout": "GroupKFold(5) by district, pooled out-of-fold",
+  "features": [
+    "property_type",
+    "region",
+    "beds_above",
+    "beds_below",
+    "baths",
+    "sqft_mid",
+    "footprint_m2",
+    "parking",
+    "lat",
+    "long",
+    "lot_area_m2",
+    "year_built",
+    "basement_finished",
+    "basement_apartment",
+    "basement_walkout",
+    "garage",
+    "renovated",
+    "new_build",
+    "pool",
+    "ravine"
+  ],
+  "params": {
+    "n_estimators": 600,
+    "learning_rate": 0.03,
+    "num_leaves": 31,
+    "min_child_samples": 30,
+    "subsample": 0.8,
+    "subsample_freq": 1,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0,
+    "random_state": 0,
+    "verbose": -1
+  },
+  "scores": {
+    "baseline": {
+      "mae": 294777.2336244541,
+      "mape": 0.2640680067780482,
+      "median_ape": 0.2195294117647059
+    },
+    "model": {
+      "mae": 118332.35054840127,
+      "mape": 0.12128956598509286,
+      "median_ape": 0.09017615819880898
+    },
+    "by_source": {
+      "brampton": {
+        "n": 1138,
+        "baseline": {
+          "mae": 272154.94551845343,
+          "mape": 0.2803893669733188,
+          "median_ape": 0.25364583333333335
+        },
+        "model": {
+          "mae": 130046.54386007487,
+          "mape": 0.11744243427251039,
+          "median_ape": 0.09163797686811356
+        }
+      },
+      "toronto": {
+        "n": 14892,
+        "baseline": {
+          "mae": 296505.9580311577,
+          "mape": 0.2628207795485143,
+          "median_ape": 0.21693333333333334
+        },
+        "model": {
+          "mae": 117437.18858300475,
+          "mape": 0.12158355174180242,
+          "median_ape": 0.08999400842071174
+        }
+      }
+    },
+    "range": {
+      "coverage_p10_p90": 0.6524641297567062,
+      "median_width_share_of_price": 0.2648252426441906,
+      "coverage_after_calibration": 0.8063006862133499,
+      "margin_log": 0.046241818205165736
+    }
+  },
+  "shap_mean_abs": {
+    "long": 0.1696,
+    "lat": 0.1392,
+    "sqft_mid": 0.0906,
+    "baths": 0.0878,
+    "property_type": 0.0372,
+    "beds_above": 0.0242,
+    "lot_area_m2": 0.0239,
+    "parking": 0.016,
+    "footprint_m2": 0.0143,
+    "year_built": 0.0142,
+    "beds_below": 0.012,
+    "renovated": 0.0043,
+    "basement_apartment": 0.003,
+    "basement_finished": 0.0021,
+    "ravine": 0.0016,
+    "basement_walkout": 0.0013,
+    "garage": 0.001,
+    "new_build": 0.0009,
+    "pool": 0.0007,
+    "region": 0.0
+  },
+  "caveats": [
+    "Toronto sale months are assumed to be 2019-06 (ml/adjust.py), not recorded.",
+    "Brampton rows lack sqft, coordinates, parking, lot, keywords and year built.",
+    "Measured on GTA sales. Nothing here is Waterloo Region accuracy.",
+    "Parameters are fixed, not tuned."
+  ]
+}
