@@ -91,6 +91,7 @@ button {
 }
 @media (prefers-color-scheme: dark) { button { color: #0d1b33; } }
 button:disabled { opacity: 0.6; cursor: wait; }
+button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 
 .muted, .range-labels { color: var(--muted); font-size: 0.9rem; }
 .error { color: var(--down); border: 1px solid var(--down); border-radius: 8px; padding: 12px; }

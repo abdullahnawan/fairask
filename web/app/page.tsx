@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ListingForm from "@/components/ListingForm";
+import PasteImport from "@/components/PasteImport";
 import ReportView from "@/components/ReportView";
 import { evaluate, getOptions, type Options, type Report } from "@/lib/api";
 import { emptyForm, toRequest, type Form } from "@/lib/request";
@@ -40,7 +41,10 @@ export default function Home() {
       <div className="layout">
         <div>
           {options ? (
-            <ListingForm form={form} options={options} busy={busy} onChange={setForm} onSubmit={submit} />
+            <>
+              <PasteImport cities={options.cities} onParsed={(fields) => setForm((f) => ({ ...f, ...fields }))} />
+              <ListingForm form={form} options={options} busy={busy} onChange={setForm} onSubmit={submit} />
+            </>
           ) : (
             !error && <p aria-busy="true">Loading…</p>
           )}
