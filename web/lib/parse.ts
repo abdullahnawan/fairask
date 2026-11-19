@@ -25,10 +25,11 @@ function askingPrice(text: string): string | undefined {
 }
 
 function propertyType(text: string): string | undefined {
-  if (/\bsemi[\s-]?detached\b|\bsemi\b/i.test(text)) return "semi_detached";
+  // "semi-finished" is a basement, not a semi; "no condo fees" is said of houses.
+  if (/\bsemi[\s-]?detached\b|\bsemi\b(?!-)/i.test(text)) return "semi_detached";
   if (/\btown\s?(?:house|home)s?\b|\brow\s?house\b/i.test(text)) return "townhouse";
-  if (/\bcondo(?:minium)?\b|\bapartment\b(?!\s+with)/i.test(text) && !/basement\s+apartment/i.test(text)) return "condo_apartment";
   if (/\bdetached\b/i.test(text)) return "detached";
+  if (/\bcondo(?:minium)?\b|\bapartment\b(?!\s+with)/i.test(text) && !/basement\s+apartment/i.test(text)) return "condo_apartment";
 }
 
 function basement(text: string): string | undefined {

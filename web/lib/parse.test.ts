@@ -47,6 +47,8 @@ describe("parseListing", () => {
     expect(parseListing("Freehold townhouse", CITIES).propertyType).toBe("townhouse");
     expect(parseListing("Condo apartment, 2 bed", CITIES).propertyType).toBe("condo_apartment");
     expect(parseListing("Bright condo unit", CITIES).propertyType).toBe("condo_apartment");
+    expect(parseListing("Detached, semi-finished basement", CITIES).propertyType).toBe("detached");
+    expect(parseListing("Detached freehold, no condo fees", CITIES).propertyType).toBe("detached");
   });
 
   it("separates basement kinds", () => {
