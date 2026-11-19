@@ -93,15 +93,6 @@ def scores(out: pd.DataFrame) -> dict[str, dict[str, float]]:
     return result
 
 
-def forecast_now(logp: pd.DataFrame, h: int) -> pd.DataFrame:
-    """Ridge forecast from the latest month, trained on every known example."""
-    table = examples(logp, h)
-    known = table[table["target"].notna()]
-    model = make_pipeline(StandardScaler(), Ridge(alpha=ALPHA)).fit(known[FEATURES], known["target"])
-    latest = table[table["month"] == table["month"].max()]
-    return latest.assign(change=model.predict(latest[FEATURES]))[["region", "property_type", "month", "change"]]
-
-
 def main() -> None:
     logp = log_prices(load_hpi_table())
     report: dict = {
