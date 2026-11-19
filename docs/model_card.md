@@ -89,6 +89,22 @@ furnace, not the house); the current model scores $118,332.
 * Location dominates the explanations as raw latitude and longitude. The deal
   report has to present these as "location", not as coordinates.
 
+## Benchmark forecast (backtest only)
+
+`ml/forecast.py` forecasts each CREA benchmark series (5 regions x 6 types)
+3 and 6 months ahead. A ridge regression on recent monthly changes was compared
+with two baselines in a rolling-origin backtest from 2015-01 to 2026-09: at each
+month the ridge was refitted on past data only. Its settings were fixed before
+the first run. Results (`ml/results/2026-11-19_forecast_eval.*`), as MAPE:
+
+| Horizon | No change | Same change as last year | Ridge |
+|---|---|---|---|
+| 3 months | 4.21% | 5.00% | 4.28% |
+| 6 months | 6.83% | 7.79% | 7.08% |
+
+**The ridge does not beat "no change"**, and from 2022 on it does worse (5.08%
+against 4.00% at 3 months). The app does not show a forecast for that reason.
+
 ## Licensing notes that travel with the model
 
 * Toronto and Brampton sold datasets: no licence stated. Used locally, credited,

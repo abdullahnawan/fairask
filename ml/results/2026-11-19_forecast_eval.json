@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-19",
+  "series": 30,
+  "data_through": "2026-09",
+  "first_origin": "2015-01",
+  "ridge_alpha": 1.0,
+  "features": [
+    "lag_1",
+    "lag_2",
+    "lag_3",
+    "lag_6",
+    "lag_12",
+    "last_year"
+  ],
+  "horizons": {
+    "3": {
+      "forecasts": 4140,
+      "origins": "2015-01 to 2026-06",
+      "scores": {
+        "naive": {
+          "mape": 0.042116365480217306,
+          "median_ape": 0.03183650881215282
+        },
+        "seasonal_naive": {
+          "mape": 0.05003993846937995,
+          "median_ape": 0.03411863143404363
+        },
+        "ridge": {
+          "mape": 0.042818817953050745,
+          "median_ape": 0.03101675597623956
+        }
+      },
+      "scores_since_2022": {
+        "naive": {
+          "mape": 0.039958203238135606,
+          "median_ape": 0.029373351820339226
+        },
+        "seasonal_naive": {
+          "mape": 0.06297798791140029,
+          "median_ape": 0.0394590485925812
+        },
+        "ridge": {
+          "mape": 0.05080596103484663,
+          "median_ape": 0.03811419120191362
+        }
+      }
+    },
+    "6": {
+      "forecasts": 4050,
+      "origins": "2015-01 to 2026-03",
+      "scores": {
+        "naive": {
+          "mape": 0.06827194864442457,
+          "median_ape": 0.05578213271731634
+        },
+        "seasonal_naive": {
+          "mape": 0.07789177206471362,
+          "median_ape": 0.051029688687365335
+        },
+        "ridge": {
+          "mape": 0.07077285042849668,
+          "median_ape": 0.053194302081568695
+        }
+      },
+      "scores_since_2022": {
+        "naive": {
+          "mape": 0.06012680871987051,
+          "median_ape": 0.04391094085191438
+        },
+        "seasonal_naive": {
+          "mape": 0.09881616055708434,
+          "median_ape": 0.052699197592446095
+        },
+        "ridge": {
+          "mape": 0.0878079339279029,
+          "median_ape": 0.06411713973003047
+        }
+      }
+    }
+  }
+}
