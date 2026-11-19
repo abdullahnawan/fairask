@@ -91,7 +91,16 @@ button {
 }
 @media (prefers-color-scheme: dark) { button { color: #0d1b33; } }
 button:disabled { opacity: 0.6; cursor: wait; }
-button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+button.secondary, .file-button {
+  background: transparent; color: var(--accent); border: 1px solid var(--accent);
+}
+.file-button {
+  display: flex; align-items: center; justify-content: center; margin: 0;
+  padding: 14px; font-weight: 600; font-size: 1rem; border-radius: 8px; cursor: pointer;
+}
+.file-button:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* The real input stays in the page for keyboards and screen readers, just invisible. */
+.file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 
 .muted, .range-labels { color: var(--muted); font-size: 0.9rem; }
 .error { color: var(--down); border: 1px solid var(--down); border-radius: 8px; padding: 12px; }
