@@ -15,6 +15,7 @@ describe("toRequest", () => {
 
   it("sends the rate as a share, not a percentage", () => {
     expect(toRequest(filled).mortgage_rate).toBeCloseTo(0.045);
+    expect(toRequest({ ...filled, ratePercent: "4.5%" }).mortgage_rate).toBeCloseTo(0.045);
   });
 
   it("spreads annual tax and income over twelve months, in cents", () => {

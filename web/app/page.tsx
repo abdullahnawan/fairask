@@ -19,6 +19,7 @@ export default function Home() {
 
   async function submit() {
     setError(null);
+    setReport(null);  // never leave the last listing's verdict next to a new error
     setBusy(true);
     try {
       const body = toRequest(form);

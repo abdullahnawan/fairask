@@ -40,7 +40,7 @@ export const emptyForm: Form = {
 export class FormError extends Error {}
 
 function number(value: string, label: string): number | null {
-  const cleaned = value.replace(/[$,\s]/g, "");
+  const cleaned = value.replace(/[$,%\s]/g, "");
   if (cleaned === "") return null;
   const n = Number(cleaned);
   if (!Number.isFinite(n) || n < 0) throw new FormError(`${label} must be a positive number.`);
