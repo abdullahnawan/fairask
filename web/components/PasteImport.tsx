@@ -27,8 +27,12 @@ export default function PasteImport({ cities, onParsed }: { cities: string[]; on
       const worker = await createWorker("eng", 1, {
         logger: (m) => m.status === "recognizing text" && setStatus(`Reading the screenshot… ${Math.round(m.progress * 100)}%`),
       });
-      const { data } = await worker.recognize(file);
-      await worker.terminate();
+      let data;
+      try {
+        ({ data } = await worker.recognize(file));
+      } finally {
+        await worker.terminate();  // also on failure, or each bad image leaves an engine in memory
+      }
       setText(data.text);
       fill(data.text);
     } catch {
