@@ -60,7 +60,7 @@ def test_a_neighbourhood_supplies_the_location() -> None:
     with_place = post().json()["valuation"]["fair_cents"]
     without = post(neighbourhood=None).json()
     assert without["valuation"]["fair_cents"] != with_place
-    assert "No location given" in without["notes"][0]
+    assert "Pick a neighbourhood" in without["notes"][0]
 
 
 def test_options_list_the_form_choices() -> None:
@@ -72,6 +72,7 @@ def test_options_list_the_form_choices() -> None:
 def test_waterloo_region_says_accuracy_is_unmeasured() -> None:
     body = post(city="Kitchener", district=None, neighbourhood=None).json()
     assert body["market"]["area"] is None                  # TRREB covers the GTA only
+    assert not any("Pick a neighbourhood" in note for note in body["notes"])
     assert any("has not been measured" in note for note in body["notes"])
     assert body["investor"]["rent_source"]["centre"] == "Kitchener-Cambridge-Waterloo CMA"
     assert body["costs"]["land_transfer_tax_cents"] == land_transfer_tax(1_250_000_00, in_toronto=False)
@@ -87,6 +88,7 @@ def test_twenty_percent_down_has_no_insurance() -> None:
     {"asking_cents": 1_250_000.5},              # dollars as a float
     {"mortgage_rate": 4.5},                     # a percentage, not a share
     {"down_payment_cents": 1_000_00},           # under the minimum down payment
+    {"down_payment_cents": 2_000_000_00},       # more than the price
     {"city": "Ottawa"},
     {"property_type": "castle"},
 ])

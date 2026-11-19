@@ -55,8 +55,6 @@ class Listing(BaseModel):
     city: Literal[tuple(CITY_REGION)]  # type: ignore[valid-type]
     district: str | None = Field(None, description="TRREB area, e.g. 'Toronto C01'")
     neighbourhood: str | None = Field(None, description="City of Toronto neighbourhood, for location")
-    lat: float | None = Field(None, ge=42, le=45)
-    long: float | None = Field(None, ge=-81.5, le=-78)
     property_type: Literal[tuple(HPI_TYPE)]  # type: ignore[valid-type]
     beds_above: int = Field(ge=0, le=20)
     beds_below: int = Field(0, ge=0, le=10)
@@ -100,8 +98,6 @@ def neighbourhoods() -> pd.DataFrame:
 
 
 def location(listing: Listing) -> tuple[float | None, float | None]:
-    if listing.lat is not None and listing.long is not None:
-        return listing.lat, listing.long
     if listing.city == "Toronto" and listing.neighbourhood in neighbourhoods().index:
         lat, long = neighbourhoods().loc[listing.neighbourhood]
         return float(lat), float(long)
@@ -157,6 +153,8 @@ def evaluate(listing: Listing) -> dict:
     try:  # the finance rules refuse some inputs (down payment under the minimum)
         down = listing.down_payment_cents
         down = minimum_down_payment(asking) if down is None else down
+        if down > asking:
+            raise ValueError("down payment is more than the asking price")
         premium = cmhc_premium(asking, down, listing.amortization_years)
         principal = asking - down + premium
         payment = monthly_payment(principal, listing.mortgage_rate, listing.amortization_years)
@@ -176,8 +174,9 @@ def evaluate(listing: Listing) -> dict:
     # Training sales without coordinates were all in Brampton, so elsewhere a
     # missing location drags the estimate towards Brampton prices.
     if location(listing)[0] is None and listing.city != "Brampton":
-        notes.append("No location given, so the model cannot use the strongest feature. "
-                     "Pick a neighbourhood (Toronto) for a better estimate.")
+        notes.append(f"No location for this {listing.city} home, so the model cannot use the "
+                     f"strongest feature and the estimate is less reliable."
+                     + (" Pick a neighbourhood to fix this." if listing.city == "Toronto" else ""))
     if region not in TRAINED_REGIONS:
         notes.append(f"The model was trained and tested on GTA sales only. Its accuracy in "
                      f"{listing.city} has not been measured.")
