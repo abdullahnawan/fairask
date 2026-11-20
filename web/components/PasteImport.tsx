@@ -43,18 +43,18 @@ export default function PasteImport({ cities, onParsed }: { cities: string[]; on
   }
 
   return (
-    <fieldset>
-      <legend>Import a listing</legend>
+    <section>
+      <h2>Import a listing</h2>
       <label>
         Listing text
         <textarea
-          rows={5}
+          rows={4}
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Copy the whole listing page (price, beds, baths, size, description) and paste it here."
         />
       </label>
-      <div className="row">
+      <div className="actions">
         <button type="button" className="secondary" onClick={() => fill(text)} disabled={!text.trim() || reading}>
           Fill the form
         </button>
@@ -73,6 +73,6 @@ export default function PasteImport({ cities, onParsed }: { cities: string[]; on
         </label>
       </div>
       {status && <p className="muted" role="status">{status}</p>}
-    </fieldset>
+    </section>
   );
 }

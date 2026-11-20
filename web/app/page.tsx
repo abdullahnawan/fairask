@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import ListingForm from "@/components/ListingForm";
 import PasteImport from "@/components/PasteImport";
-import ReportView from "@/components/ReportView";
+import { ReportDetails, ReportSummary } from "@/components/ReportView";
 import { evaluate, getOptions, type Options, type Report } from "@/lib/api";
 import { emptyForm, toRequest, type Form } from "@/lib/request";
 
@@ -17,6 +17,12 @@ export default function Home() {
   useEffect(() => {
     getOptions().then(setOptions, (e: Error) => setError(e.message));
   }, []);
+
+  useEffect(() => {
+    if (!report) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("report")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  }, [report]);
 
   async function submit() {
     setError(null);
@@ -33,32 +39,36 @@ export default function Home() {
   }
 
   return (
-    <main>
-      <header>
-        <h1>FairAsk</h1>
-        <p className="muted">Is the asking price fair? Homes in Waterloo Region and the GTA.</p>
+    <>
+      <header className="topbar">
+        <div className="wrap">
+          <h1>FairAsk</h1>
+          <p>Is the asking price fair? Homes in Waterloo Region and the GTA.</p>
+        </div>
       </header>
-      <div className="layout">
-        <div>
-          {options ? (
-            <>
-              <PasteImport cities={options.cities} onParsed={(fields) => setForm((f) => ({ ...f, ...fields }))} />
-              <ListingForm form={form} options={options} busy={busy} onChange={setForm} onSubmit={submit} />
-            </>
-          ) : (
-            !error && <p aria-busy="true">Loading…</p>
-          )}
-        </div>
-        <div aria-live="polite">
-          {error && <p className="error" role="alert">{error}</p>}
-          {report ? (
-            <ReportView report={report.report} askingCents={report.askingCents} />
-          ) : (
-            options && <p className="empty">Fill in the listing and press the button. The report shows a fair value
-              range, a verdict, the reasons behind it and what owning it would cost.</p>
-          )}
-        </div>
+      <div aria-live="polite">
+        {report && <ReportSummary report={report.report} askingCents={report.askingCents} />}
       </div>
-    </main>
+      <main className={report ? "wrap" : "wrap solo"}>
+        {error && <p className="error" role="alert">{error}</p>}
+        <div className={report ? "layout" : undefined}>
+          <div className="sheet">
+            {options ? (
+              <>
+                <PasteImport cities={options.cities} onParsed={(fields) => setForm((f) => ({ ...f, ...fields }))} />
+                <ListingForm form={form} options={options} busy={busy} onChange={setForm} onSubmit={submit} />
+              </>
+            ) : (
+              !error && <p className="empty" aria-busy="true">Loading…</p>
+            )}
+          </div>
+          {report && (
+            <div className="sheet">
+              <ReportDetails report={report.report} />
+            </div>
+          )}
+        </div>
+      </main>
+    </>
   );
 }

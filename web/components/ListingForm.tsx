@@ -37,8 +37,8 @@ export default function ListingForm({ form, options, busy, onChange, onSubmit }:
         onSubmit();
       }}
     >
-      <fieldset>
-        <legend>The listing</legend>
+      <section>
+        <h2>The listing</h2>
         {text("asking", "Asking price ($)", "899,900")}
         <label>
           City
@@ -109,10 +109,10 @@ export default function ListingForm({ form, options, busy, onChange, onSubmit }:
           {text("daysOnMarket", "Days on market", "", "numeric")}
           {text("originalList", "Original list price ($)", "if it was cut")}
         </div>
-      </fieldset>
+      </section>
 
-      <fieldset>
-        <legend>Your purchase</legend>
+      <section>
+        <h2>Your purchase</h2>
         <div className="row">
           {text("ratePercent", "Mortgage rate (%)", "4.5")}
           {text("amortization", "Amortization (years)", "25", "numeric")}
@@ -130,9 +130,9 @@ export default function ListingForm({ form, options, busy, onChange, onSubmit }:
           {text("condoFees", "Condo fees ($/mo)")}
           {text("rent", "Expected rent ($/mo)", "CMHC average if blank")}
         </div>
-      </fieldset>
+      </section>
 
-      <button type="submit" disabled={busy}>{busy ? "Evaluating…" : "Is it a fair price?"}</button>
+      <button className="primary" type="submit" disabled={busy}>{busy ? "Evaluating…" : "Is it a fair price?"}</button>
     </form>
   );
 }
